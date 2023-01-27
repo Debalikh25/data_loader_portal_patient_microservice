@@ -1,5 +1,6 @@
 package com.cts.dlt.controllers;
 
+import java.io.UncheckedIOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import com.cts.dlt.dao.JwtExpired;
 import com.cts.dlt.dao.MessageDAO;
 import com.cts.dlt.dao.ResponseAfterUploadDAO;
 import com.cts.dlt.entities.Patient;
+import com.cts.dlt.helper.StringConstants;
 import com.cts.dlt.services.PatientServiceImpl;
 
 @RestController
@@ -49,13 +51,13 @@ public class PatientController {
 		
 			
 			if (header == null) {
-				error.setError("Not Authorized");
-				return new ResponseEntity<>(error, HttpStatus.OK);
+				error.setError(StringConstants.UNAUTHORIZED);
+				return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 			}
 			JwtExpired valid = this.util.validToken(header);
 			if (valid == null) {
-				error.setError("Not Authorized");
-				return new ResponseEntity<>(error, HttpStatus.OK);
+				error.setError(StringConstants.UNAUTHORIZED);
+				return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
 			}
 
 			return new ResponseEntity<>(valid, HttpStatus.OK);
@@ -65,23 +67,21 @@ public class PatientController {
 	@GetMapping("/patient/{id}")
 	public ResponseEntity<?> getPatientById(@PathVariable("id") long id,
 			@RequestHeader(name = "auth", required = false) String header) {
-		   
-		    System.out.println(header);
 
 		if (header == null) {
-			error.setError("Not Authorized");
-			return new ResponseEntity<>(error, HttpStatus.OK);
+			error.setError(StringConstants.UNAUTHORIZED);
+			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
-			return new ResponseEntity<>(valid, HttpStatus.OK);
+			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 
 		Patient patient = this.service.getPatientById(id);
 		if (patient == null) {
-			message.setMessage("Patient with Id: " + id + " not found.");
-			return new ResponseEntity<>(message, HttpStatus.OK);
+			message.setMessage(StringConstants.NOT_FOUND);
+			return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
 		}
 
 		return new ResponseEntity<>(patient, HttpStatus.OK);
@@ -92,105 +92,108 @@ public class PatientController {
 			@RequestHeader(name = "auth", required = false) String header) {
 
 		if (header == null) {
-			error.setError("Not Authorized");
-			return new ResponseEntity<>(error, HttpStatus.OK);
+			error.setError(StringConstants.UNAUTHORIZED);
+			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
-			return new ResponseEntity<>(valid, HttpStatus.OK);
+			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 		
 		List<Patient> patients = this.service.getPatientByName(name);
 		if (patients.size() == 0) {
-			message.setMessage("Patient with Name: " + name + " not found.");
-			return new ResponseEntity<>(message, HttpStatus.OK);
+			message.setMessage(StringConstants.NOT_FOUND);
+			return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
 		}
 
 		return new ResponseEntity<>(patients, HttpStatus.OK);
 	}
+	
+	
 
 	@PutMapping("/patient/updatepatient")
 	public ResponseEntity<?> updatePatient(@RequestBody() Patient patient,
 			@RequestHeader(name = "auth", required = false) String header) {
 		if (header == null) {
-			error.setError("Not Authorized");
-			return new ResponseEntity<>(error, HttpStatus.OK);
+			error.setError(StringConstants.UNAUTHORIZED);
+			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
 		
 		
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
-			return new ResponseEntity<>(valid, HttpStatus.OK);
+			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 
 		String updatePatient = this.service.updatePatient(patient);
-		if (updatePatient.equals("200")) {
-			message.setMessage("Patient Updated");
+		if (updatePatient.equals("")) {
+			message.setMessage(StringConstants.UPDATED);
 			return new ResponseEntity<>(message, HttpStatus.OK);
 
 		}
 
-		if (updatePatient.equals("400")) {
-			error.setError("Patient with Id: " + patient.getPatientId() + " not found");
+		if (updatePatient.equals(null)) {
+			error.setError(StringConstants.NOT_FOUND);
 			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 		}
 
 		error.setError(updatePatient);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-
-	}
+}
+	
+	
 
 	@PutMapping("/patient/process")
 	public ResponseEntity<?> processPatient(@RequestBody() Patient patient,
 			@RequestHeader(name = "auth", required = false) String header) {
 
 		if (header == null) {
-			error.setError("Not Authorized");
-			return new ResponseEntity<>(error, HttpStatus.OK);
+			error.setError(StringConstants.UNAUTHORIZED);
+			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
-			return new ResponseEntity<>(valid, HttpStatus.OK);
+			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 		
 		String res = this.service.processPatient(patient);
 
 		if (res == null) {
-			error.setError("Patient with id: " + patient.getPatientId() + " not found");
-			return new ResponseEntity<>(error, HttpStatus.OK);
-		}
-		if (res.equals("400")) {
-			error.setError("Patient with id: " + patient.getPatientId() + " not found");
-			return new ResponseEntity<>(error, HttpStatus.OK);
+			error.setError(StringConstants.NOT_FOUND);
+			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 		}
 
 		message.setMessage(res);
 		return new ResponseEntity<>(message, HttpStatus.OK);
 	}
+	
+	
 
 	@PostMapping("/upload")
-	public ResponseEntity<?> uploadFile(@RequestHeader(name = "auth", required = false) String header, 
-			@RequestParam("file") MultipartFile file
-			) {
-
-		if (header == null) {
-			error.setError("Not Authorized");
-			return new ResponseEntity<>(error, HttpStatus.OK);
-		}
-		
-		JwtExpired valid = this.util.validToken(header);
-		if(valid.isExpired() == true){
-			return new ResponseEntity<>(valid, HttpStatus.OK);
-		}
+	public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file , @RequestHeader(name="Authorization" , required=false) String header) throws UncheckedIOException {
+          
+		 //Multipart form-data upload accepts in-built headers and not custom headers
+		 // like "Authorization" and not 'auth'
 
 		try {
+			if (header == null) {
+				error.setError(StringConstants.UNAUTHORIZED);
+				return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+			}
+			
+			JwtExpired valid = this.util.validToken(header);
+			if(valid.isExpired() == true){
+				return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
+			}
+			
+			
 
 			String ext = file.getOriginalFilename().split("\\.")[1];
 			if (!(ext.equals("xlsx") || !(ext.equals("xls")))) {
-				message.setMessage("File should be an Excel DOC.");
+				message.setMessage(StringConstants.FILE_ERROR);
 				return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
 			}
 
@@ -200,7 +203,7 @@ public class PatientController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			message.setMessage("There was an error in the server " + e.getMessage());
+			message.setMessage(StringConstants.SERVER_ERROR);
 			return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 

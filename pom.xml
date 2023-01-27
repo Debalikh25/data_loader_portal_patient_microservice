@@ -13,6 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>PatientService</name>
 	<description>Microservice For Patient</description>
+	<packaging>jar</packaging>
 <properties>
 		<java.version>1.8</java.version>
 		<spring-cloud.version>2021.0.5</spring-cloud.version>
@@ -47,6 +48,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+ 
+</dependency>
 
 			   <dependency>
         <groupId>org.apache.poi</groupId>
@@ -88,6 +95,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>dlt-patient</finalName>
 	</build>
 
 

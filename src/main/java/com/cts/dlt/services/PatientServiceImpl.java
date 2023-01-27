@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Optional;
 import java.text.SimpleDateFormat;
 
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
+//import org.apache.poi.hssf.usermodel.HSSFSheet;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+//import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cts.dlt.dao.ResponseAfterUploadDAO;
 import com.cts.dlt.entities.InvalidPatient;
 import com.cts.dlt.entities.Patient;
+import com.cts.dlt.helper.StringConstants;
 import com.cts.dlt.repositories.InvalidPatientRepositry;
 import com.cts.dlt.repositories.PatientRepository;
 
@@ -75,7 +76,7 @@ public class PatientServiceImpl implements PatientService {
 		XSSFWorkbook wb = new XSSFWorkbook(file.getInputStream());
 
 		XSSFSheet sheet = wb.getSheetAt(0);
-		int rowcount = sheet.getLastRowNum();
+	//	int rowCount = sheet.getLastRowNum();
 		DataFormatter formatter = new DataFormatter();
 
 		for (Row row : sheet) {
@@ -95,53 +96,53 @@ public class PatientServiceImpl implements PatientService {
 			Patient p = this.repo.findByPatientEmail(email);
 			if (p != null) {
 				invalidPatient.setPatientEmail(email);
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Patient With Email Already Exist - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence += " "+StringConstants.PATIENT_EMAIL_EXIST+" - "; 
 			}
 
 			// start of validations
 			if (!(patientName.matches("^[a-zA-Z ]*$")) || name.length() > 30 || name.length() < 5) {
 				invalidPatient.setPatientName(patientName);
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Patient Name is invalid - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence +=" "+StringConstants.INVALID_PATIENT_NAME+" - ";
 			}
 
 			if (!(contactNumber.length() == 10)) {
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Contact Number should equal 10 characters - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence +=" "+StringConstants.INVALID_PATIENT_CONTACT+" - ";
 			}
 
 			if (!(email.matches("^\\w+([\\.-]?\\w+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$"))) {
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Email is not valid - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence += " "+StringConstants.INVALID_PATIENT_EMAIL+" - ";;
 			}
 			
 			if(address.trim().isEmpty()){
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Patient Address should not be empty";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence +=" "+StringConstants.INVALID_PATIENT_ADDRESS+" - ";;
 			}
 
 			if (!(drugId.matches("\\d{5}-\\d{4}-\\d{2}"))) {
-				invalidPatient.setStatus("Failed");
-				errorSentence += " Drug Id should be of the pattern XXXXX-XXXX-XX - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence += " "+StringConstants.INVALID_PATIENT_DRUG_ID+" - ";;
 			}
 
 			if (!(dob.matches("^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\\d\\d$"))) {
-				invalidPatient.setStatus("Failed");
-				errorSentence += " DOB not in correct format(MM-dd-yyyy) - ";
+				invalidPatient.setStatus(StringConstants.FAILED);
+				errorSentence += " "+StringConstants.INVALID_PATIENT_DOB+" - ";
 			} else {
 
 				boolean res = calculateDifferenceBetweenDates(dob);
 
 				if (res == false) {
 					invalidPatient.setPatientDateOfBirth(dob);
-					invalidPatient.setStatus("Failed");
-					errorSentence += " DOB is inappropriate(of the future) - ";
+					invalidPatient.setStatus(StringConstants.FAILED);
+					errorSentence += " "+StringConstants.INVALID_PATIENT_FUTURE_DOB+" - ";
 				}
 			}
 			// end of validations
 
-			if (invalidPatient.getStatus() != null && invalidPatient.getStatus().equals("Failed")) {
+			if (invalidPatient.getStatus() != null && invalidPatient.getStatus().equals(StringConstants.FAILED)) {
 
 				invalidPatient.setPatientName(patientName);
 				invalidPatient.setPatientAddress(address);
@@ -164,7 +165,7 @@ public class PatientServiceImpl implements PatientService {
 				patient.setPatientContactNumber(Long.parseLong(contactNumber));
 				patient.setPatientDrugId(drugId);
 				patient.setPatientDrugName(drugName);
-				patient.setStatus("Inducted");
+				patient.setStatus(StringConstants.INDUCTED);
 				Patient savedValidPatient = this.repo.save(patient);
 				successFullPatients.add(savedValidPatient);
 
@@ -188,31 +189,31 @@ public class PatientServiceImpl implements PatientService {
 
 		if (exist.isPresent()) {
 
-			if (exist.get().getStatus().equals("Processed")) {
-				return "Patient Not Found";
+			if (exist.get().getStatus().equals(StringConstants.INDUCTED)) {
+				return StringConstants.NOT_FOUND;
 			}
 
 			if (!(pat.getPatientDateOfBirth().matches("^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\\d\\d$"))) {
-				return "Date Of Birth Not In Correct Format";
+				return StringConstants.INVALID_PATIENT_DOB;
 			}
 
 			if (calculateDifferenceBetweenDates(pat.getPatientDateOfBirth()) == false) {
-				return "There should be a minimum difference of one day between DOB and today";
+				return StringConstants.INVALID_PATIENT_FUTURE_DOB;
 			}
 
 			Long contact = pat.getPatientContactNumber();
 
 			if (contact.toString().length() > 10 || contact.toString().length() < 10) {
 
-				return "Contact Number should be exactly 10 digits";
+				return StringConstants.INVALID_PATIENT_CONTACT;
 			}
 			
 			if(pat.getPatientAddress().trim().isEmpty()){
-				return "Patient Address should not be empty";
+				return StringConstants.INVALID_PATIENT_ADDRESS;
 			}
 
 			if (!(pat.getPatientEmail().matches("^\\w+([\\.-]?\\w+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$"))) {
-				return "Email Id is invalid";
+				return StringConstants.INVALID_PATIENT_EMAIL;
 			}
 
 			Patient patient = exist.get();
@@ -222,11 +223,13 @@ public class PatientServiceImpl implements PatientService {
 			patient.setPatientDateOfBirth(pat.getPatientDateOfBirth());
 			this.repo.save(patient);
 
-			return "200";
+			return "";
 		}
 
-		return "400";
+		return null;
 	}
+	
+	
 
 	// Patient Sent to Downstream System for Processing
 	public String processPatient(Patient patient) {
@@ -235,15 +238,16 @@ public class PatientServiceImpl implements PatientService {
 		if (patient1 == null) {
 			return null;
 		}
-		if (patient1.getStatus().equals("Processed")) {
-			return "400";
-		}
-		patient1.setStatus(patient.getStatus());
+
+		
+		patient1.setStatus(StringConstants.PROCESSED);
 		this.repo.save(patient1);
 
-		return "Patient sent For Processing";
+		return StringConstants.PATIENT_PROCESSED;
 
 	}
+	
+	
 
 	// helper function to calculate number of days between two dates
 	private boolean calculateDifferenceBetweenDates(String dob) {
@@ -251,7 +255,7 @@ public class PatientServiceImpl implements PatientService {
 		try {
 
 			Date today = new Date();
-			Date dateOfBirth = new SimpleDateFormat("MM-dd-yyyy").parse(dob);
+			Date dateOfBirth = new SimpleDateFormat(StringConstants.DATE_FORMAT).parse(dob);
 			long difference_In_Time = today.getTime() - dateOfBirth.getTime();
 
 			long difference = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
