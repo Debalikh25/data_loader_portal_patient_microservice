@@ -31,7 +31,7 @@ import com.cts.dlt.services.PatientServiceImpl;
 @CrossOrigin()
 @RequestMapping("/api/v1/")
 public class PatientController {
-
+ //hello world
 	@Value("${patient.files}")
 	private String filePath;
 
@@ -115,7 +115,9 @@ public class PatientController {
 	@PutMapping("/patient/updatepatient")
 	public ResponseEntity<?> updatePatient(@RequestBody() Patient patient,
 			@RequestHeader(name = "auth", required = false) String header) {
+		  
 		if (header == null) {
+			System.out.println("Because Of 1");
 			error.setError(StringConstants.UNAUTHORIZED);
 			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
@@ -124,6 +126,7 @@ public class PatientController {
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
+			System.out.println("Because Of 2");
 			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -135,11 +138,13 @@ public class PatientController {
 		}
 
 		if (updatePatient.equals(null)) {
+			System.out.println("Because Of 3");
 			error.setError(StringConstants.NOT_FOUND);
 			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 		}
 
 		error.setError(updatePatient);
+		System.out.println("Because Of 4");
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 }
 	

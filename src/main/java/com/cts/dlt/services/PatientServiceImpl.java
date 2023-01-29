@@ -189,7 +189,7 @@ public class PatientServiceImpl implements PatientService {
 
 		if (exist.isPresent()) {
 
-			if (exist.get().getStatus().equals(StringConstants.INDUCTED)) {
+			if (exist.get().getStatus().equals(StringConstants.PROCESSED)) {
 				return StringConstants.NOT_FOUND;
 			}
 
