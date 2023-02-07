@@ -234,14 +234,15 @@ public class PatientServiceImpl implements PatientService {
 	// Patient Sent to Downstream System for Processing
 	public String processPatient(Patient patient) {
 
-		Patient patient1 = this.repo.findById(patient.getPatientId()).get();
-		if (patient1 == null) {
+		Optional<Patient> found = this.repo.findById(patient.getPatientId());
+		if(found.isEmpty()) {
 			return null;
 		}
-
 		
-		patient1.setStatus(StringConstants.PROCESSED);
-		this.repo.save(patient1);
+         Patient pat = found.get();
+		
+		pat.setStatus(StringConstants.PROCESSED);
+		this.repo.save(pat);
 
 		return StringConstants.PATIENT_PROCESSED;
 

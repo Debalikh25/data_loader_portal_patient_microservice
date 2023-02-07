@@ -1,8 +1,7 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:17
 
-EXPOSE 7000
+EXPOSE 7001
 
-COPY target/dlt-patient.jar dlt-patient.jar 
+ADD target/dlt-patient.jar dlt-patient.jar
 
-ENTRYPOINT [ "java" , "-jar" , "dlt-patient.jar" ]
-
+ENTRYPOINT ["java" , "-jar" , "dlt-patient.jar"]

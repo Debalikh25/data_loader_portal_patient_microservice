@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import com.cts.dlt.dao.JwtExpired;
 
 
-@FeignClient(name="auth-util" , url="http://localhost:7000/api/v1")
+@FeignClient(name="auth-util" , url="http://auth-container-dlp:7000/api/v1")
 public interface FeignUtil {
 	
 	@GetMapping("/token/expired")

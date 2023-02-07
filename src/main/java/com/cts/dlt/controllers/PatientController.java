@@ -117,7 +117,6 @@ public class PatientController {
 			@RequestHeader(name = "auth", required = false) String header) {
 		  
 		if (header == null) {
-			System.out.println("Because Of 1");
 			error.setError(StringConstants.UNAUTHORIZED);
 			return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
 		}
@@ -126,25 +125,26 @@ public class PatientController {
 		
 		JwtExpired valid = this.util.validToken(header);
 		if(valid.isExpired() == true){
-			System.out.println("Because Of 2");
 			return new ResponseEntity<>(valid, HttpStatus.UNAUTHORIZED);
 		}
 
 		String updatePatient = this.service.updatePatient(patient);
+		
+		if (updatePatient == null) {
+			error.setError(StringConstants.NOT_FOUND);
+			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		}
+		
+		
 		if (updatePatient.equals("")) {
 			message.setMessage(StringConstants.UPDATED);
 			return new ResponseEntity<>(message, HttpStatus.OK);
 
 		}
 
-		if (updatePatient.equals(null)) {
-			System.out.println("Because Of 3");
-			error.setError(StringConstants.NOT_FOUND);
-			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-		}
+	
 
 		error.setError(updatePatient);
-		System.out.println("Because Of 4");
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 }
 	
@@ -197,6 +197,12 @@ public class PatientController {
 			
 
 			String ext = file.getOriginalFilename().split("\\.")[1];
+			 
+			if(ext == null) {
+				message.setMessage(StringConstants.FILE_ERROR);
+				return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+			}
+			 
 			if (!(ext.equals("xlsx") || !(ext.equals("xls")))) {
 				message.setMessage(StringConstants.FILE_ERROR);
 				return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
